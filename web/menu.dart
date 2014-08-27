@@ -16,7 +16,7 @@ class TitleMenu extends Menu {
 
   @override
   void render(webgl.RenderingContext gl) {
-    blitter.drawBitmapPart(Art.logo, 0.0, 8.0, 0.0, 0.0, 160.0, 36.0);
+    blitter.drawBitmapPart(Art.logo, 0.0, 8.0, 0, 0, 160, 36);
 
     for (int i = 0; i < options.length; i++) {
       String msg = options[i];

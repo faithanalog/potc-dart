@@ -32,14 +32,14 @@ class Blitter {
     batch.end();
   }
 
-  void drawBitmapPart(dtmark.Texture bmp, double x, double y, double xo, double yo, double w, double h, [Vector4 color = null]) {
+  void drawBitmapPart(dtmark.Texture bmp, double x, double y, int xo, int yo, int w, int h, [Vector4 color = null]) {
     if (color == null) {
       color = Colors.WHITE;
     }
     batch.color.setFrom(color);
     batch.begin();
     //Upside down texture on Y axis
-    batch.drawTexRegion(bmp, x, y, w, h, xo, yo + h, w, -h);
+    batch.drawTexRegion(bmp, x, y, w.toDouble(), h.toDouble(), xo, yo + h, w, -h);
     batch.end();
   }
 
@@ -57,10 +57,10 @@ class Blitter {
       int ch = chars.codeUnits.indexOf(string.codeUnitAt(i));
       if (ch < 0) continue;
 
-      double xx = (ch % 42).toDouble();
-      double yy = (ch ~/ 42).toDouble();
+      int xx = ch % 42;
+      int yy = ch ~/ 42;
       //Upside down texture on Y axis
-      batch.drawTexRegion(Art.font, x + i * 6.0, y, 5.0, 8.0, xx * 6.0, yy * 8.0 + 8.0, 5.0, -8.0);
+      batch.drawTexRegion(Art.font, x + i * 6.0, y, 5.0, 8.0, xx * 6, yy * 8 + 8, 5, -8);
     }
     batch.end();
   }
@@ -95,7 +95,7 @@ class Art {
 
   static dtmark.Texture loadTex(String path, webgl.RenderingContext gl, List<Future> waitList) {
     var tex = new dtmark.Texture.load(path, gl);
-    waitList.add(tex.onLoad());
+    waitList.add(tex.onLoad);
     return tex;
   }
 }

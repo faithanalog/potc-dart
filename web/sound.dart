@@ -70,12 +70,12 @@ class Sound {
     thud = loadSound("res/snd/thud", waitList);
     ladder = loadSound("res/snd/ladder", waitList);
     potion = loadSound("res/snd/potion", waitList);
-    return Future.wait(waitList);;
+    return Future.wait(waitList);
   }
 
   static Sound loadSound(String path, List<Future> waitList) {
     var dtSound = new dtmark.Sound.load(path, engine, true);
-    waitList.add(dtSound.onLoad());
+    waitList.add(dtSound.onLoad);
     return new Sound(dtSound);
   }
 

@@ -12,10 +12,10 @@ packages:
   dtmark:
     description:
       ref: null
-      resolved-ref: "97c96c881efc34c2efe70db9872f1dd53de90657"
+      resolved-ref: "5e75d53c57caa98e6be6f67b2e6f0cf81fd8b787"
       url: "git://github.com/unknownloner/DTMark"
     source: git
-    version: "0.5.0"
+    version: "0.6.1"
   vector_math:
     description: vector_math
     source: hosted

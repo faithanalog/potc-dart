@@ -2,8 +2,8 @@ library potc;
 
 import 'dart:html';
 import 'dart:web_gl' as webgl;
-import 'dart:web_audio';
-import 'dart:typed_data';
+// import 'dart:web_audio';
+// import 'dart:typed_data';
 import 'dart:async';
 
 import 'package:vector_math/vector_math.dart';
@@ -19,66 +19,62 @@ Blitter blitter;
 
 void main() {
   game = new Game();
-  game.start();
+  game.launchGame();
   game.canvas.focus();
 }
 
-class Game {
+class Game extends dtmark.BaseGame {
 
-  webgl.RenderingContext gl;
-
-  List<bool> keys = new List(256);
   Menu curMenu = null;
-
-  CanvasElement canvas;
 
   static const int width = 160;
   static const int height = 120;
 
-  Game() {
+  Game(): super(document.getElementById("disp_canvas"));
 
+  @override
+  webgl.RenderingContext createContext3d() {
+    return canvas.getContext3d(alpha: false, antialias: false);
   }
 
-  void start() {
-    canvas = document.getElementById("disp_canvas");
-    gl = canvas.getContext3d(alpha: false, antialias: false);
-
+  @override
+  void launchGame() {
     blitter = new Blitter(gl);
 
     Future.wait([Art.load(gl), Sound.load()]).then((_) {
       print("Loaded!");
       curMenu = new TitleMenu();
-
-      canvas.onKeyDown.listen((evt) {
-        evt.preventDefault();
-        keys[evt.keyCode] = true;
-      });
-
-      canvas.onKeyUp.listen((evt) {
-        evt.preventDefault();
-        keys[evt.keyCode] = false;
-      });
-
-      window.animationFrame.then(render);
+      super.launchGame();
     });
   }
 
-  void render(double time) {
-    window.animationFrame.then(render);
-
+  @override
+  void render() {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(webgl.COLOR_BUFFER_BIT | webgl.DEPTH_BUFFER_BIT);
 
     if (curMenu != null) {
       curMenu.render(gl);
-      curMenu.tick(this, keys[38], keys[40], keys[37], keys[39], keys[32]);
-
-      keys[38] = false;
-      keys[40] = false;
-      keys[37] = false;
-      keys[39] = false;
-      keys[32] = false;
     }
+  }
+
+  @override
+  void tick() {
+    if (curMenu != null) {
+      curMenu.tick(this, isKeyDown(38), isKeyDown(40), isKeyDown(37), isKeyDown(39), isKeyDown(32));
+
+      setKey(38, false);
+      setKey(40, false);
+      setKey(37, false);
+      setKey(39, false);
+      setKey(32, false);
+    }
+  }
+
+  /**
+   * Launches a new game of PotC
+   */
+  void newGame() {
 
   }
 
