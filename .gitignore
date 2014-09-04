@@ -12,3 +12,4 @@ build
 .DS_Store
 preludejava
 out
+pubspec.lock
