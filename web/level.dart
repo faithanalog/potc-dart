@@ -156,7 +156,6 @@ abstract class Level {
     if (col == 0xFFFF00) {
       xSpawn = x;
       ySpawn = y;
-      print("SPAWN $x $y");
     }
 
     double ex = x.toDouble();
@@ -265,7 +264,6 @@ abstract class Level {
         if (block.id == id && block is LadderBlock) {
           xSpawn = x;
           ySpawn = y;
-          print("SPAWN $x $y");
         }
       }
     }

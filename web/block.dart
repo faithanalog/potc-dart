@@ -312,7 +312,6 @@ class LadderBlock extends Block {
   @override
   void addEntity(Entity entity) {
     super.addEntity(entity);
-    print(id);
     if (!wait && entity is Player) {
       level.switchLevel(id);
       Sound.ladder.play();
