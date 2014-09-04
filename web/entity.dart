@@ -384,6 +384,7 @@ class Bullet extends Entity {
   Entity owner;
 
   Bullet(this.owner, double x, double z, double rot, double pow, int sprite, int col) {
+    r = 0.01;
     xa = Math.sin(rot) * 0.2 * pow;
     za = Math.cos(rot) * 0.2 * pow;
     this.x = x - za / 2;
