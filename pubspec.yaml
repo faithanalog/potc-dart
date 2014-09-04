@@ -2,5 +2,5 @@ name: prelude_of_the_chambered
 dependencies:
   browser: any
   vector_math: any
-  dtmark:
-    git: git://github.com/unknownloner/DTMark
+  dtmark: any
+  image: ">=1.1.22 <2.0.0"
