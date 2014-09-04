@@ -42,8 +42,6 @@ class Game extends dtmark.BaseGame {
   int pauseTime = 0;
   Menu menu = null;
 
-  dtmark.SpriteBatch batch;
-
   static const int width = 160;
   static const int height = 120;
 
@@ -63,9 +61,6 @@ class Game extends dtmark.BaseGame {
   void launchGame() {
     blitter = new Blitter(gl);
     viewport = new Viewport(gl);
-    batch = new dtmark.SpriteBatch(gl);
-    batch.projection = makeOrthographicMatrix(0, Game.width, Game.height, 0, -1, 1);
-    batch.shader = new dtmark.Shader(vertShaderSrc, fragShaderSrc, gl);
 
     Future.wait([Art.load(gl), Sound.load()]).then((_) {
       print("Loaded!");
@@ -160,10 +155,12 @@ class Game extends dtmark.BaseGame {
     gl.enable(webgl.BLEND);
     gl.blendFunc(webgl.SRC_ALPHA, webgl.ONE_MINUS_SRC_ALPHA);
     //Darken the game
+    var batch = blitter.batch;
     batch.begin();
     batch.color.setValues(0.0, 0.0, 0.0, 0.8);
     batch.fillRect(0.0, 0.0, Game.width.toDouble(), Game.height.toDouble());
     batch.end();
+    batch.color.setValues(1.0, 1.0, 1.0, 1.0);
     gl.disable(webgl.BLEND);
   }
 
