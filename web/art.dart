@@ -481,7 +481,7 @@ class Art {
         double yp = ((i ~/ w) - h / 2.0) / h * 2;
 
         double alpha = Math.sqrt(xp * xp + yp * yp) - pixrand.nextDouble();
-        int r = (rand.nextInt(5) ~/ 4) * 0x55;
+        int r = (pixrand.nextInt(5) ~/ 4) * 0x55;
 
         int o = i * 4;
         data[o] = r;
