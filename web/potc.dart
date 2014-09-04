@@ -88,18 +88,18 @@ class Game extends dtmark.BaseGame {
       } else if (player != null) {
         viewport.renderGame(game);
 
-				int xx = (player.turnBob * 32).floor();
-				int yy = (Math.sin(player.bobPhase * 0.4) * 1 * player.bob + player.bob * 2).floor();
+        int xx = (player.turnBob * 32).floor();
+        int yy = (Math.sin(player.bobPhase * 0.4) * 1 * player.bob + player.bob * 2).floor();
 
         bool itemUsed = player.itemUseTime > 0;
         Item item = player.items[player.selectedSlot];
 
-				if (itemUsed) xx = yy = 0;
-				xx += width / 2;
-				yy += height - PANEL_HEIGHT - 15 * 3;
-				if (item != Item.none) {
-					blitter.drawBitmapPartScaled(Art.items, 3, xx.toDouble(), yy.toDouble(), 16 * item.icon + 1, 16 + 1 + (itemUsed ? 16 : 0), 15, 15, item.color);
-				}
+        if (itemUsed) xx = yy = 0;
+        xx += width / 2;
+        yy += height - PANEL_HEIGHT - 15 * 3;
+        if (item != Item.none) {
+          blitter.drawBitmapPartScaled(Art.items, 3, xx.toDouble(), yy.toDouble(), 16 * item.icon + 1, 16 + 1 + (itemUsed ? 16 : 0), 15, 15, item.color);
+        }
       }
 
       blitter.drawBitmapPart(Art.panel, 0.0, (height - PANEL_HEIGHT).toDouble(), 0, 0, width, PANEL_HEIGHT, 0x707070);
@@ -112,30 +112,30 @@ class Game extends dtmark.BaseGame {
       Item item = player.items[player.selectedSlot];
 
       blitter.drawString("å", 3.0, height - 26 + 0.0, 0x00FFFF);
-			blitter.drawString("${player.keys}/4", 10.0, height - 26 + 0.0, 0xffffff);
-			blitter.drawString("Ä", 3.0, height - 26 + 8.0, 0xffff00);
-			blitter.drawString(player.loot.toString(), 10.0, height - 26 + 8.0, 0xffffff);
-			blitter.drawString("Å", 3.0, height - 26 + 16.0, 0xff0000);
-			blitter.drawString(player.health.toString(), 10.0, height - 26 + 16.0, 0xffffff);
+      blitter.drawString("${player.keys}/4", 10.0, height - 26 + 0.0, 0xffffff);
+      blitter.drawString("Ä", 3.0, height - 26 + 8.0, 0xffff00);
+      blitter.drawString(player.loot.toString(), 10.0, height - 26 + 8.0, 0xffffff);
+      blitter.drawString("Å", 3.0, height - 26 + 16.0, 0xff0000);
+      blitter.drawString(player.health.toString(), 10.0, height - 26 + 16.0, 0xffffff);
 
-			for (int i = 0; i < 8; i++) {
-				Item slotItem = player.items[i];
-				if (slotItem != Item.none) {
-					blitter.drawBitmapPart(Art.items, 30 + i * 16.0, height - PANEL_HEIGHT + 2.0, slotItem.icon * 16, 0, 16, 16, slotItem.color);
-					if (slotItem == Item.pistol) {
-						String str = player.ammo.toString();
-						blitter.drawString(str, 30 + i * 16 + 17 - str.length * 6.0, height - PANEL_HEIGHT + 1 + 10.0, 0x555555);
-					}
-					if (slotItem == Item.potion) {
-						String str = player.potions.toString();
-						blitter.drawString(str, 30 + i * 16 + 17 - str.length * 6.0, height - PANEL_HEIGHT + 1 + 10.0, 0x555555);
-					}
-				}
-			}
+      for (int i = 0; i < 8; i++) {
+        Item slotItem = player.items[i];
+        if (slotItem != Item.none) {
+          blitter.drawBitmapPart(Art.items, 30 + i * 16.0, height - PANEL_HEIGHT + 2.0, slotItem.icon * 16, 0, 16, 16, slotItem.color);
+          if (slotItem == Item.pistol) {
+            String str = player.ammo.toString();
+            blitter.drawString(str, 30 + i * 16 + 17 - str.length * 6.0, height - PANEL_HEIGHT + 1 + 10.0, 0x555555);
+          }
+          if (slotItem == Item.potion) {
+            String str = player.potions.toString();
+            blitter.drawString(str, 30 + i * 16 + 17 - str.length * 6.0, height - PANEL_HEIGHT + 1 + 10.0, 0x555555);
+          }
+        }
+      }
 
-			blitter.drawBitmapPart(Art.items, 30.0 + game.player.selectedSlot * 16, height - PANEL_HEIGHT + 2.0, 0, 48, 17, 17, 0xFFFFFF);
+      blitter.drawBitmapPart(Art.items, 30.0 + game.player.selectedSlot * 16, height - PANEL_HEIGHT + 2.0, 0, 48, 17, 17, 0xFFFFFF);
 
-			blitter.drawString(item.name, 26.0 + (8 * 16 - item.name.length * 4) ~/ 2, height - 9.0, 0xffffff);
+      blitter.drawString(item.name, 26.0 + (8 * 16 - item.name.length * 4) ~/ 2, height - 9.0, 0xffffff);
 
     }
 
@@ -144,13 +144,13 @@ class Game extends dtmark.BaseGame {
       menu.render(gl);
     }
 
-		if (document.activeElement != canvas) {
-			darkenScreen();
-			if (dtmark.BaseGame.frameTime ~/ 450 % 2 != 0) {
-				String msg = "Click to focus!";
-				blitter.drawString(msg, ((width - msg.length * 6) ~/ 2).toDouble(), height ~/ 3 + 4.0, 0xffffff);
-			}
-		}
+    if (document.activeElement != canvas) {
+      darkenScreen();
+      if (dtmark.BaseGame.frameTime ~/ 450 % 2 != 0) {
+        String msg = "Click to focus!";
+        blitter.drawString(msg, ((width - msg.length * 6) ~/ 2).toDouble(), height ~/ 3 + 4.0, 0xffffff);
+      }
+    }
   }
 
   /**
@@ -272,9 +272,9 @@ class Game extends dtmark.BaseGame {
   }
 
   void switchLevel(String name, int id) {
-		pauseTime = 30;
-		level.removeEntityImmediately(player);
-		level = new Level.load(this, name);
+    pauseTime = 30;
+    level.removeEntityImmediately(player);
+    level = new Level.load(this, name);
     level.onLoad.then((_) {
       level.findSpawn(id);
       player.x = level.xSpawn.toDouble();

@@ -309,20 +309,20 @@ class Viewport extends Blitter {
 
   void renderGame(Game game) {
 
-		rot = Math.PI + game.player.rot;
-		xCam = game.player.x + 0.5;
-		yCam = game.player.z + 0.5;
-		// zCam = 0.57 + Math.sin(game.player.bobPhase * 0.4) * 0.01 * game.player.bob - game.player.y;
+    rot = Math.PI + game.player.rot;
+    xCam = game.player.x + 0.5;
+    yCam = game.player.z + 0.5;
+    // zCam = 0.57 + Math.sin(game.player.bobPhase * 0.4) * 0.01 * game.player.bob - game.player.y;
     zCam = -0.57 + Math.sin(game.player.bobPhase * 0.4) * 0.01 * game.player.bob - game.player.y;
 
-		rCos = Math.cos(rot);
-		rSin = Math.sin(rot);
+    rCos = Math.cos(rot);
+    rSin = Math.sin(rot);
 
-		Level level = game.level;
-		int r = 6;
+    Level level = game.level;
+    int r = 6;
 
-		int xCenter = xCam.floor();
-		int zCenter = yCam.floor();
+    int xCenter = xCam.floor();
+    int zCenter = yCam.floor();
 
 
     modelView = new Matrix4.identity();
@@ -335,44 +335,44 @@ class Viewport extends Blitter {
     gl.viewport(0, 0, fboTex.width, fboTex.height);
     gl.clear(webgl.COLOR_BUFFER_BIT | webgl.DEPTH_BUFFER_BIT);
     begin();
-		for (int zb = zCenter - r; zb <= zCenter + r; zb++) {
-			for (int xb = xCenter - r; xb <= xCenter + r; xb++) {
-				Block c = level.getBlock(xb, zb);
-				Block e = level.getBlock(xb + 1, zb);
-				Block s = level.getBlock(xb, zb + 1);
+    for (int zb = zCenter - r; zb <= zCenter + r; zb++) {
+      for (int xb = xCenter - r; xb <= xCenter + r; xb++) {
+        Block c = level.getBlock(xb, zb);
+        Block e = level.getBlock(xb + 1, zb);
+        Block s = level.getBlock(xb, zb + 1);
 
-				if (c is DoorBlock) {
-					double rr = 1 / 8.0;
-					double openness = 1 - c.openness * 7 / 8;
-					if (e.solidRender) {
-						renderWallPart(xb + openness, zb + 0.5 - rr, xb + 0.0, zb + 0.5 - rr, c.tex, (c.col & 0xfefefe) >> 1, 0.0, openness);
-						renderWallPart(xb + 0.0, zb + 0.5 + rr, xb + openness, zb + 0.5 + rr, c.tex, (c.col & 0xfefefe) >> 1, openness, 0.0);
-						renderWallPart(xb + openness, zb + 0.5 + rr, xb + openness, zb + 0.5 - rr, c.tex, c.col, 0.5 - rr, 0.5 + rr);
-					} else {
-						renderWallPart(xb + 0.5 - rr, zb + 0.0, xb + 0.5 - rr, zb + openness, c.tex, c.col, openness, 0.0);
-						renderWallPart(xb + 0.5 + rr, zb + openness, xb + 0.5 + rr, zb + 0.0, c.tex, c.col, 0.0, openness);
-						renderWallPart(xb + 0.5 - rr, zb + openness, xb + 0.5 + rr, zb + openness, c.tex, (c.col & 0xfefefe) >> 1, 0.5 - rr, 0.5 + rr);
-					}
+        if (c is DoorBlock) {
+          double rr = 1 / 8.0;
+          double openness = 1 - c.openness * 7 / 8;
+          if (e.solidRender) {
+            renderWallPart(xb + openness, zb + 0.5 - rr, xb + 0.0, zb + 0.5 - rr, c.tex, (c.col & 0xfefefe) >> 1, 0.0, openness);
+            renderWallPart(xb + 0.0, zb + 0.5 + rr, xb + openness, zb + 0.5 + rr, c.tex, (c.col & 0xfefefe) >> 1, openness, 0.0);
+            renderWallPart(xb + openness, zb + 0.5 + rr, xb + openness, zb + 0.5 - rr, c.tex, c.col, 0.5 - rr, 0.5 + rr);
+          } else {
+            renderWallPart(xb + 0.5 - rr, zb + 0.0, xb + 0.5 - rr, zb + openness, c.tex, c.col, openness, 0.0);
+            renderWallPart(xb + 0.5 + rr, zb + openness, xb + 0.5 + rr, zb + 0.0, c.tex, c.col, 0.0, openness);
+            renderWallPart(xb + 0.5 - rr, zb + openness, xb + 0.5 + rr, zb + openness, c.tex, (c.col & 0xfefefe) >> 1, 0.5 - rr, 0.5 + rr);
+          }
 
-				}
+        }
 
-				if (c.solidRender) {
-					if (!e.solidRender) {
-						renderWall(xb + 1.0, zb + 1.0, xb + 1.0, zb + 0.0, c.tex, c.col);
-					}
-					if (!s.solidRender) {
-						renderWall(xb + 0.0, zb + 1.0, xb + 1.0, zb + 1.0, c.tex, (c.col & 0xfefefe) >> 1);
-					}
-				} else {
-					if (e.solidRender) {
-						renderWall(xb + 1.0, zb + 0.0, xb + 1.0, zb + 1.0, e.tex, e.col);
-					}
-					if (s.solidRender) {
-						renderWall(xb + 1.0, zb + 1.0, xb + 0.0, zb + 1.0, s.tex, (s.col & 0xfefefe) >> 1);
-					}
-				}
-			}
-		}
+        if (c.solidRender) {
+          if (!e.solidRender) {
+            renderWall(xb + 1.0, zb + 1.0, xb + 1.0, zb + 0.0, c.tex, c.col);
+          }
+          if (!s.solidRender) {
+            renderWall(xb + 0.0, zb + 1.0, xb + 1.0, zb + 1.0, c.tex, (c.col & 0xfefefe) >> 1);
+          }
+        } else {
+          if (e.solidRender) {
+            renderWall(xb + 1.0, zb + 0.0, xb + 1.0, zb + 1.0, e.tex, e.col);
+          }
+          if (s.solidRender) {
+            renderWall(xb + 1.0, zb + 1.0, xb + 0.0, zb + 1.0, s.tex, (s.col & 0xfefefe) >> 1);
+          }
+        }
+      }
+    }
 
     for (int zb = zCenter - r; zb <= zCenter + r; zb++) {
       for (int xb = xCenter - r; xb <= xCenter + r; xb++) {
@@ -382,24 +382,24 @@ class Viewport extends Blitter {
       }
     }
 
-		for (int zb = zCenter - r; zb <= zCenter + r; zb++) {
-			for (int xb = xCenter - r; xb <= xCenter + r; xb++) {
-				Block c = level.getBlock(xb, zb);
+    for (int zb = zCenter - r; zb <= zCenter + r; zb++) {
+      for (int xb = xCenter - r; xb <= xCenter + r; xb++) {
+        Block c = level.getBlock(xb, zb);
 
-				for (int j = 0; j < c.entities.length; j++) {
-					Entity e = c.entities[j];
-					for (int i = 0; i < e.sprites.length; i++) {
-						Sprite sprite = e.sprites[i];
-						renderSprite(e.x + sprite.x, sprite.y, e.z + sprite.z, sprite.tex, sprite.col);
-					}
-				}
+        for (int j = 0; j < c.entities.length; j++) {
+          Entity e = c.entities[j];
+          for (int i = 0; i < e.sprites.length; i++) {
+            Sprite sprite = e.sprites[i];
+            renderSprite(e.x + sprite.x, sprite.y, e.z + sprite.z, sprite.tex, sprite.col);
+          }
+        }
 
-				for (int i = 0; i < c.sprites.length; i++) {
-					Sprite sprite = c.sprites[i];
-					renderSprite(xb + sprite.x, sprite.y, zb + sprite.z, sprite.tex, sprite.col);
-				}
-			}
-		}
+        for (int i = 0; i < c.sprites.length; i++) {
+          Sprite sprite = c.sprites[i];
+          renderSprite(xb + sprite.x, sprite.y, zb + sprite.z, sprite.tex, sprite.col);
+        }
+      }
+    }
     end();
 
 
@@ -436,7 +436,7 @@ class Viewport extends Blitter {
 
 
 
-		// renderFloor(level);
+    // renderFloor(level);
   }
 
 }

@@ -168,150 +168,150 @@ class Player extends Entity {
 
     Block onBlock = level.getBlock((x + 0.5).floor(), (z + 0.5).floor());
 
-		double fh = onBlock.getFloorHeight(this);
-		if (onBlock is WaterBlock && !(lastBlock is WaterBlock)) {
-			Sound.splash.play();
-		}
+    double fh = onBlock.getFloorHeight(this);
+    if (onBlock is WaterBlock && !(lastBlock is WaterBlock)) {
+      Sound.splash.play();
+    }
 
-		lastBlock = onBlock;
+    lastBlock = onBlock;
 
-		if (dead) fh = -0.6;
-		if (fh > y) {
-			y += (fh - y) * 0.2;
-			ya = 0.0;
-		} else {
-			ya -= 0.01;
-			y += ya;
-			if (y < fh) {
-				y = fh;
-				ya = 0.0;
-			}
-		}
+    if (dead) fh = -0.6;
+    if (fh > y) {
+      y += (fh - y) * 0.2;
+      ya = 0.0;
+    } else {
+      ya -= 0.01;
+      y += ya;
+      if (y < fh) {
+        y = fh;
+        ya = 0.0;
+      }
+    }
 
-		double rotSpeed = 0.05;
-		double walkSpeed = 0.03 * onBlock.getWalkSpeed(this);
+    double rotSpeed = 0.05;
+    double walkSpeed = 0.03 * onBlock.getWalkSpeed(this);
 
-		if (turnLeft) rota += rotSpeed;
-		if (turnRight) rota -= rotSpeed;
+    if (turnLeft) rota += rotSpeed;
+    if (turnRight) rota -= rotSpeed;
 
-		double xm = 0.0;
-		double zm = 0.0;
-		if (up) zm--;
-		if (down) zm++;
-		if (left) xm--;
-		if (right) xm++;
-		double dd = xm * xm + zm * zm;
-		if (dd > 0) dd = Math.sqrt(dd);
-		else dd = 1.0;
-		xm /= dd;
-		zm /= dd;
+    double xm = 0.0;
+    double zm = 0.0;
+    if (up) zm--;
+    if (down) zm++;
+    if (left) xm--;
+    if (right) xm++;
+    double dd = xm * xm + zm * zm;
+    if (dd > 0) dd = Math.sqrt(dd);
+    else dd = 1.0;
+    xm /= dd;
+    zm /= dd;
 
-		bob *= 0.6;
-		turnBob *= 0.8;
-		turnBob += rota;
-		bob += Math.sqrt(xm * xm + zm * zm);
-		bobPhase += Math.sqrt(xm * xm + zm * zm) * onBlock.getWalkSpeed(this);
-		bool wasSliding = sliding;
-		sliding = false;
+    bob *= 0.6;
+    turnBob *= 0.8;
+    turnBob += rota;
+    bob += Math.sqrt(xm * xm + zm * zm);
+    bobPhase += Math.sqrt(xm * xm + zm * zm) * onBlock.getWalkSpeed(this);
+    bool wasSliding = sliding;
+    sliding = false;
 
-		if (onBlock is IceBlock && getSelectedItem() != Item.skates) {
-			if (xa * xa > za * za) {
-				sliding = true;
-				za = 0.0;
-				if (xa > 0) xa = 0.08;
-				else xa = -0.08;
-				z += ((z + 0.5).floor() - z) * 0.2;
-			} else if (xa * xa < za * za) {
-				sliding = true;
-				xa = 0.0;
-				if (za > 0) za = 0.08;
-				else za = -0.08;
-				x += ((x + 0.5).floor() - x) * 0.2;
-			} else {
-				xa -= (xm * Math.cos(rot) + zm * Math.sin(rot)) * 0.1;
-				za -= (zm * Math.cos(rot) - xm * Math.sin(rot)) * 0.1;
-			}
+    if (onBlock is IceBlock && getSelectedItem() != Item.skates) {
+      if (xa * xa > za * za) {
+        sliding = true;
+        za = 0.0;
+        if (xa > 0) xa = 0.08;
+        else xa = -0.08;
+        z += ((z + 0.5).floor() - z) * 0.2;
+      } else if (xa * xa < za * za) {
+        sliding = true;
+        xa = 0.0;
+        if (za > 0) za = 0.08;
+        else za = -0.08;
+        x += ((x + 0.5).floor() - x) * 0.2;
+      } else {
+        xa -= (xm * Math.cos(rot) + zm * Math.sin(rot)) * 0.1;
+        za -= (zm * Math.cos(rot) - xm * Math.sin(rot)) * 0.1;
+      }
 
-			if (!wasSliding && sliding) {
-				Sound.slide.play();
-			}
-		} else {
-			xa -= (xm * Math.cos(rot) + zm * Math.sin(rot)) * walkSpeed;
-			za -= (zm * Math.cos(rot) - xm * Math.sin(rot)) * walkSpeed;
-		}
+      if (!wasSliding && sliding) {
+        Sound.slide.play();
+      }
+    } else {
+      xa -= (xm * Math.cos(rot) + zm * Math.sin(rot)) * walkSpeed;
+      za -= (zm * Math.cos(rot) - xm * Math.sin(rot)) * walkSpeed;
+    }
 
-		move();
+    move();
 
-		double friction = onBlock.getFriction(this);
-		xa *= friction;
-		za *= friction;
-		rot += rota;
-		rota *= 0.4;
+    double friction = onBlock.getFriction(this);
+    xa *= friction;
+    za *= friction;
+    rot += rota;
+    rota *= 0.4;
   }
 
   void activate() {
-		if (dead) return;
-		if (itemUseTime > 0) return;
-		Item item = items[selectedSlot];
-		if (item == Item.pistol) {
-			if (ammo > 0) {
-				Sound.shoot.play();
-				itemUseTime = 10;
-				level.addEntity(new Bullet(this, x, z, rot, 1.0, 0, 0xffffff));
-				ammo--;
-			}
-			return;
-		}
-		if (item == Item.potion) {
-			if (potions > 0 && health < 20) {
-				Sound.potion.play();
-				itemUseTime = 20;
-				health += 5 + rand.nextInt(6);
-				if (health > 20) health = 20;
-				potions--;
-			}
-			return;
-		}
-		if (item == Item.key) itemUseTime = 10;
-		if (item == Item.powerGlove) itemUseTime = 10;
-		if (item == Item.cutters) itemUseTime = 10;
+    if (dead) return;
+    if (itemUseTime > 0) return;
+    Item item = items[selectedSlot];
+    if (item == Item.pistol) {
+      if (ammo > 0) {
+        Sound.shoot.play();
+        itemUseTime = 10;
+        level.addEntity(new Bullet(this, x, z, rot, 1.0, 0, 0xffffff));
+        ammo--;
+      }
+      return;
+    }
+    if (item == Item.potion) {
+      if (potions > 0 && health < 20) {
+        Sound.potion.play();
+        itemUseTime = 20;
+        health += 5 + rand.nextInt(6);
+        if (health > 20) health = 20;
+        potions--;
+      }
+      return;
+    }
+    if (item == Item.key) itemUseTime = 10;
+    if (item == Item.powerGlove) itemUseTime = 10;
+    if (item == Item.cutters) itemUseTime = 10;
 
-		double xa = (2 * Math.sin(rot));
-		double za = (2 * Math.cos(rot));
+    double xa = (2 * Math.sin(rot));
+    double za = (2 * Math.cos(rot));
 
-		int rr = 3;
-		int xc = (x + 0.5).floor();
-		int zc = (z + 0.5).floor();
-		List<Entity> possibleHits = new List();
-		for (int z = zc - rr; z <= zc + rr; z++) {
-			for (int x = xc - rr; x <= xc + rr; x++) {
+    int rr = 3;
+    int xc = (x + 0.5).floor();
+    int zc = (z + 0.5).floor();
+    List<Entity> possibleHits = new List();
+    for (int z = zc - rr; z <= zc + rr; z++) {
+      for (int x = xc - rr; x <= xc + rr; x++) {
         for (var entity in level.getBlock(x, z).entities) {
           if (entity == this) continue;
           possibleHits.add(entity);
         }
-			}
-		}
+      }
+    }
 
-		int divs = 100;
-		for (int i = 0; i < divs; i++) {
-			double xx = x + xa * i / divs;
-			double zz = z + za * i / divs;
+    int divs = 100;
+    for (int i = 0; i < divs; i++) {
+      double xx = x + xa * i / divs;
+      double zz = z + za * i / divs;
       for (var entity in possibleHits) {
         if (entity.contains(xx, zz) && entity.use(this, items[selectedSlot])) {
           return;
         }
       }
-			int xt = (xx + 0.5).floor();
-			int zt = (zz + 0.5).floor();
-			if (xt != (x + 0.5).floor() || zt != (z + 0.5).floor()) {
-				Block block = level.getBlock(xt, zt);
-				if (block.use(level, items[selectedSlot])) {
-					return;
-				}
-				if (block.blocks(this)) return;
-			}
-		}
-	}
+      int xt = (xx + 0.5).floor();
+      int zt = (zz + 0.5).floor();
+      if (xt != (x + 0.5).floor() || zt != (z + 0.5).floor()) {
+        Block block = level.getBlock(xt, zt);
+        if (block.use(level, items[selectedSlot])) {
+          return;
+        }
+        if (block.blocks(this)) return;
+      }
+    }
+  }
 
   Item getSelectedItem() => items[selectedSlot];
 
@@ -354,12 +354,12 @@ class Player extends Entity {
 
     Sound.hurt.play();
 
-		double xd = enemy.x - x;
-		double zd = enemy.z - z;
-		double dd = Math.sqrt(xd * xd + zd * zd);
-		xa -= xd / dd * 0.1;
-		za -= zd / dd * 0.1;
-		rota += (rand.nextDouble() - 0.5) * 0.2;
+    double xd = enemy.x - x;
+    double zd = enemy.z - z;
+    double dd = Math.sqrt(xd * xd + zd * zd);
+    xa -= xd / dd * 0.1;
+    za -= zd / dd * 0.1;
+    rota += (rand.nextDouble() - 0.5) * 0.2;
   }
 
   @override
@@ -482,71 +482,71 @@ class EnemyEntity extends Entity {
 
   @override
   void tick() {
-		if (hurtTime > 0) {
-			hurtTime--;
-			if (hurtTime == 0) {
-				sprite.col = defaultColor;
-			}
-		}
-		animTime++;
-		sprite.tex = defaultTex + animTime ~/ 10 % 2;
-		move();
-		if (xa == 0 || za == 0) {
-			rota += (nextGaussian() * rand.nextDouble()) * 0.3;
-		}
+    if (hurtTime > 0) {
+      hurtTime--;
+      if (hurtTime == 0) {
+        sprite.col = defaultColor;
+      }
+    }
+    animTime++;
+    sprite.tex = defaultTex + animTime ~/ 10 % 2;
+    move();
+    if (xa == 0 || za == 0) {
+      rota += (nextGaussian() * rand.nextDouble()) * 0.3;
+    }
 
-		rota += (nextGaussian() * rand.nextDouble()) * spinSpeed;
-		rot += rota;
-		rota *= 0.8;
-		xa *= 0.8;
-		za *= 0.8;
-		xa += Math.sin(rot) * 0.004 * runSpeed;
-		za += Math.cos(rot) * 0.004 * runSpeed;
+    rota += (nextGaussian() * rand.nextDouble()) * spinSpeed;
+    rot += rota;
+    rota *= 0.8;
+    xa *= 0.8;
+    za *= 0.8;
+    xa += Math.sin(rot) * 0.004 * runSpeed;
+    za += Math.cos(rot) * 0.004 * runSpeed;
   }
 
   @override
   bool use(Entity source, Item item) {
-		if (hurtTime > 0) return false;
-		if (item != Item.powerGlove) return false;
+    if (hurtTime > 0) return false;
+    if (item != Item.powerGlove) return false;
 
-		hurt(Math.sin(source.rot), Math.cos(source.rot));
+    hurt(Math.sin(source.rot), Math.cos(source.rot));
 
-		return true;
-	}
+    return true;
+  }
 
   void hurt(double xd, double zd) {
-		sprite.col = 0xFF0000;
-		hurtTime = 15;
+    sprite.col = 0xFF0000;
+    hurtTime = 15;
 
-		double dd = Math.sqrt(xd * xd + zd * zd);
-		xa += xd / dd * 0.2;
-		za += zd / dd * 0.2;
-		Sound.hurt2.play();
-		health--;
-		if (health <= 0) {
-			int xt = (x + 0.5).floor();
-			int zt = (z + 0.5).floor();
-			level.getBlock(xt, zt).addSprite(new PoofSprite(x - xt, 0.0, z - zt));
-			die();
-			remove();
-			Sound.kill.play();
-		}
-	}
+    double dd = Math.sqrt(xd * xd + zd * zd);
+    xa += xd / dd * 0.2;
+    za += zd / dd * 0.2;
+    Sound.hurt2.play();
+    health--;
+    if (health <= 0) {
+      int xt = (x + 0.5).floor();
+      int zt = (z + 0.5).floor();
+      level.getBlock(xt, zt).addSprite(new PoofSprite(x - xt, 0.0, z - zt));
+      die();
+      remove();
+      Sound.kill.play();
+    }
+  }
 
   void die() {}
 
   void collide(Entity entity) {
-		if (entity is Bullet) {
-			if (entity.owner.runtimeType == this.runtimeType) {
-				return;
-			}
-			if (hurtTime > 0) return;
-			entity.remove();
-			hurt(entity.xa, entity.za);
-		}
-		if (entity is Player) {
-			entity.hurt(this, 1);
-		}
+    if (entity is Bullet) {
+      if (entity.owner.runtimeType == this.runtimeType) {
+        return;
+      }
+      if (hurtTime > 0) return;
+      entity.remove();
+      hurt(entity.xa, entity.za);
+    }
+    if (entity is Player) {
+      entity.hurt(this, 1);
+    }
   }
 }
 
@@ -691,35 +691,35 @@ class GhostEntity extends EnemyEntity {
 
   @override
   void tick() {
-		animTime++;
-		sprite.tex = defaultTex + animTime ~/ 10 % 2;
+    animTime++;
+    sprite.tex = defaultTex + animTime ~/ 10 % 2;
 
-		double xd = (level.player.x + Math.sin(rotatePos)) - x;
-		double zd = (level.player.z + Math.cos(rotatePos)) - z;
-		double dd = xd * xd + zd * zd;
+    double xd = (level.player.x + Math.sin(rotatePos)) - x;
+    double zd = (level.player.z + Math.cos(rotatePos)) - z;
+    double dd = xd * xd + zd * zd;
 
-		if (dd < 4 * 4) {
-			if (dd < 1) {
-				rotatePos += 0.04;
-			} else {
-				rotatePos = level.player.rot;
-				xa += (rand.nextDouble() - 0.5) * 0.02;
-				za += (rand.nextDouble() - 0.5) * 0.02;
-			}
+    if (dd < 4 * 4) {
+      if (dd < 1) {
+        rotatePos += 0.04;
+      } else {
+        rotatePos = level.player.rot;
+        xa += (rand.nextDouble() - 0.5) * 0.02;
+        za += (rand.nextDouble() - 0.5) * 0.02;
+      }
 
-			dd = Math.sqrt(dd);
+      dd = Math.sqrt(dd);
 
-			xd /= dd;
-			zd /= dd;
+      xd /= dd;
+      zd /= dd;
 
-			xa += xd * 0.004;
-			za += zd * 0.004;
-		}
+      xa += xd * 0.004;
+      za += zd * 0.004;
+    }
 
-		move();
+    move();
 
-		xa *= 0.9;
-		za *= 0.9;
+    xa *= 0.9;
+    za *= 0.9;
   }
 
   @override
@@ -746,36 +746,36 @@ class GhostBossEntity extends EnemyEntity {
     animTime++;
     sprite.tex = defaultTex + animTime ~/ 10 % 2;
 
-		double xd = (level.player.x + Math.sin(rotatePos) * 2) - x;
-		double zd = (level.player.z + Math.cos(rotatePos) * 2) - z;
-		double dd = xd * xd + zd * zd;
+    double xd = (level.player.x + Math.sin(rotatePos) * 2) - x;
+    double zd = (level.player.z + Math.cos(rotatePos) * 2) - z;
+    double dd = xd * xd + zd * zd;
 
-		if (dd < 1) {
-			rotatePos += 0.04;
-		} else {
-			rotatePos = level.player.rot;
-		}
-		if (dd < 4 * 4) {
-			dd = Math.sqrt(dd);
+    if (dd < 1) {
+      rotatePos += 0.04;
+    } else {
+      rotatePos = level.player.rot;
+    }
+    if (dd < 4 * 4) {
+      dd = Math.sqrt(dd);
 
-			xd /= dd;
-			zd /= dd;
+      xd /= dd;
+      zd /= dd;
 
-			xa += xd * 0.006;
-			za += zd * 0.006;
+      xa += xd * 0.006;
+      za += zd * 0.006;
 
-			if (shootDelay > 0) shootDelay--;
-			else if (rand.nextInt(10) == 0) {
-				shootDelay = 10;
-				level.addEntity(new Bullet(this, x, z, Math.atan2(level.player.x - x, level.player.z - z), 0.20, 1, defaultColor));
-			}
+      if (shootDelay > 0) shootDelay--;
+      else if (rand.nextInt(10) == 0) {
+        shootDelay = 10;
+        level.addEntity(new Bullet(this, x, z, Math.atan2(level.player.x - x, level.player.z - z), 0.20, 1, defaultColor));
+      }
 
-		}
+    }
 
-		move();
+    move();
 
-		xa *= 0.9;
-		za *= 0.9;
+    xa *= 0.9;
+    za *= 0.9;
   }
 
   @override

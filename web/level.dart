@@ -196,18 +196,18 @@ abstract class Level {
   }
 
   bool containsBlockingEntity(double x0, double y0, double x1, double y1) {
-		int xc = ((x1 + x0) / 2).floor();
-		int zc = ((y1 + y0) / 2).floor();
-		int rr = 2;
-		for (int z = zc - rr; z <= zc + rr; z++) {
-			for (int x = xc - rr; x <= xc + rr; x++) {
-				List<Entity> es = getBlock(x, z).entities;
-				for (int i = 0; i < es.length; i++) {
-					Entity e = es[i];
-					if (e.isInside(x0, y0, x1, y1)) return true;
-				}
-			}
-		}
+    int xc = ((x1 + x0) / 2).floor();
+    int zc = ((y1 + y0) / 2).floor();
+    int rr = 2;
+    for (int z = zc - rr; z <= zc + rr; z++) {
+      for (int x = xc - rr; x <= xc + rr; x++) {
+        List<Entity> es = getBlock(x, z).entities;
+        for (int i = 0; i < es.length; i++) {
+          Entity e = es[i];
+          if (e.isInside(x0, y0, x1, y1)) return true;
+        }
+      }
+    }
     return false;
   }
 
