@@ -6,6 +6,7 @@ class Colors {
 
   static Vector4 WHITE = new Vector4(1.0, 1.0, 1.0, 1.0);
 
+  //Returns a new Vec4 for the RGB values if needed, or a cached value from usedColors
   static Vector4 create(int rgb) {
     if (usedColors.containsKey(rgb)) {
       return usedColors[rgb];
@@ -28,11 +29,7 @@ class Blitter {
     batch = new dtmark.SpriteBatch(gl, width: 1, height: 1);
     //Upside down ortho matrix
     batch.projection = makeOrthographicMatrix(0, Game.width, Game.height, 0, -1, 1);
-    batch.shader = new dtmark.Shader(vertShaderSrc, fragShaderSrc, gl);
-    batch.shader.bindAttribLocation(0, "a_position");
-    batch.shader.bindAttribLocation(1, "a_texCoord");
-    batch.shader.bindAttribLocation(2, "a_color");
-    batch.shader.link();
+    batch.shader = new dtmark.Shader(vertShaderSrc, fragShaderSrc, gl, name: "Blitter Shader", attribLocs: potcAttribLocs);
   }
 
   void drawBitmap(dtmark.Texture bmp, double x, double y, [int color = null]) {
@@ -84,29 +81,9 @@ class Blitter {
 
 class Viewport extends Blitter {
 
-  final Float32List verts = new Float32List(9 * 65536);
-
-  webgl.Buffer vertBuff;
-  webgl.Buffer indBuff;
-
-  webgl.Framebuffer fbo;
-  dtmark.Texture fboTex;
-
-  dtmark.Shader shader;
+  dtmark.Framebuffer framebuffer;
   dtmark.Shader hurtShader;
-
-  dtmark.Texture _lastTex = null;
-
-  Matrix4 projection = new Matrix4.identity();
-  Matrix4 modelView = new Matrix4.identity();
-  Matrix4 transform = new Matrix4.identity();
-  Vector4 color = new Vector4(1.0, 1.0, 1.0, 1.0);
-
-  int _vOff = 0;
-  int _vOffMax = 9 * 65536;
-  bool _rendering = false;
-
-  bool _texChanged = false;
+  dtmark.Tessellator tess;
 
   double rot;
   double xCam;
@@ -116,74 +93,18 @@ class Viewport extends Blitter {
   double rSin;
 
   Viewport(webgl.RenderingContext gl) : super(gl) {
-    vertBuff = gl.createBuffer();
-    shader = new dtmark.Shader(vertShader3dSrc, fragShader3dSrc, gl);
-    setupBatchShader(shader);
-
-    hurtShader = new dtmark.Shader(vertShaderSrc, fragShaderHurtSrc, gl);
-    setupBatchShader(hurtShader);
+    tess = new dtmark.Tessellator(gl);
+    hurtShader = new dtmark.Shader(vertShaderSrc, fragShaderHurtSrc, gl, name: "Hurt Effect Shader", attribLocs: potcAttribLocs);
 
     //Setup framebuffer
-    fbo = gl.createFramebuffer();
+    framebuffer = new dtmark.Framebuffer(gl, Game.WIDTH, Game.VIEWPORT_HEIGHT, depth: true);
 
-    fboTex = new dtmark.Texture(null, gl);
-    fboTex.setSize(Game.WIDTH, Game.VIEWPORT_HEIGHT);
-
-    var fboDepth = gl.createRenderbuffer();
-    gl.bindRenderbuffer(webgl.RENDERBUFFER, fboDepth);
-    gl.renderbufferStorage(webgl.RENDERBUFFER, webgl.DEPTH_COMPONENT16, fboTex.width, fboTex.height);
-
-    gl.bindFramebuffer(webgl.FRAMEBUFFER, fbo);
-    gl.framebufferTexture2D(webgl.FRAMEBUFFER, webgl.COLOR_ATTACHMENT0, webgl.TEXTURE_2D, fboTex.glTex, 0);
-    gl.framebufferRenderbuffer(webgl.FRAMEBUFFER, webgl.DEPTH_ATTACHMENT, webgl.RENDERBUFFER, fboDepth);
-
-    gl.bindFramebuffer(webgl.FRAMEBUFFER, null);
-    gl.bindRenderbuffer(webgl.RENDERBUFFER, null);
-
-    //Generate indices
-    var indData = new Uint16List(6 * 65536 ~/ 4);
-    var index = 0;
-    for (var i = 0; i < indData.length; i += 6) {
-      indData[i + 0] = index;
-      indData[i + 1] = index + 1;
-      indData[i + 2] = index + 2;
-      indData[i + 3] = index + 2;
-      indData[i + 4] = index + 3;
-      indData[i + 5] = index;
-      index += 4;
-    }
-    indBuff = gl.createBuffer();
-    gl.bindBuffer(webgl.ELEMENT_ARRAY_BUFFER, indBuff);
-    gl.bufferDataTyped(webgl.ELEMENT_ARRAY_BUFFER, indData, webgl.STATIC_DRAW);
-    gl.bindBuffer(webgl.ELEMENT_ARRAY_BUFFER, null);
-
-    projection = makePerspectiveMatrix(60 * Math.PI / 180, Game.WIDTH / Game.VIEWPORT_HEIGHT, 0.01, 100.0);
-    modelView = new Matrix4.identity();
-    _lastTex;
-  }
-
-  void _switchTexture(dtmark.Texture tex) {
-    if (_lastTex != tex) {
-      flush();
-      _texChanged = true;
-      _lastTex = tex;
-    }
-  }
-
-  void addVert(double x, double y, double z, double u, double v) {
-    if (_vOff >= _vOffMax) {
-      flush();
-    }
-    verts[_vOff + 0] = x;
-    verts[_vOff + 1] = y;
-    verts[_vOff + 2] = z;
-    verts[_vOff + 3] = u;
-    verts[_vOff + 4] = v;
-    verts[_vOff + 5] = color.r;
-    verts[_vOff + 6] = color.g;
-    verts[_vOff + 7] = color.b;
-    verts[_vOff + 8] = color.a;
-    _vOff += 9;
+    //Setup tessellator
+    tess.projection = makePerspectiveMatrix(60 * Math.PI / 180, Game.WIDTH / Game.VIEWPORT_HEIGHT, 0.01, 100.0);
+    tess.shader = new dtmark.Shader(vertShader3dSrc, fragShader3dSrc, gl, name: "3D Shader", attribLocs: potcAttribLocs);
+    tess.useQuads = true;
+    tess.useColor = true;
+    tess.useTexture = true;
   }
 
   void renderSprite(double x, double y, double z, int tex, int color) {
@@ -206,15 +127,12 @@ class Viewport extends Blitter {
     double y0 = y - 0.5;
     double y1 = y + 0.5;
 
-    this.color.setFrom(color == null ? Colors.WHITE : Colors.create(color));
-    _switchTexture(Art.sprites);
-    addVert(x1, y1, z1, u1, v0);
-    addVert(x0, y1, z0, u0, v0);
-    addVert(x0, y0, z0, u0, v1);
-    addVert(x1, y0, z1, u1, v1);
-
-
-    // drawTexRegion(Art.sprites, x, y, 0.5, 0.5, texX, texY, 16, 16);
+    tess.color.setFrom(color == null ? Colors.WHITE : Colors.create(color));
+    tess.texture = Art.sprites;
+    tess.vertexUV(x1, y1, z1, u1, v0);
+    tess.vertexUV(x0, y1, z0, u0, v0);
+    tess.vertexUV(x0, y0, z0, u0, v1);
+    tess.vertexUV(x1, y0, z1, u1, v1);
   }
 
   void renderWall(double x0, double z0, double x1, double z1, int tex, int color) {
@@ -222,18 +140,17 @@ class Viewport extends Blitter {
   }
 
   void renderWallPart(double x0, double z0, double x1, double z1, int tex, int color, double xt0, double xt1) {
-
     double u0 = ((tex % 8) + xt0) / 8;
     double v0 = (tex ~/ 8) / 8;
     double u1 = u0 + (xt1 - xt0) / 8;
     double v1 = v0 + 1 / 8;
 
-    this.color.setFrom(color == null ? Colors.WHITE : Colors.create(color));
-    _switchTexture(Art.walls);
-    addVert(x1, 1.0, z1, u1, v0);
-    addVert(x0, 1.0, z0, u0, v0);
-    addVert(x0, 0.0, z0, u0, v1);
-    addVert(x1, 0.0, z1, u1, v1);
+    tess.color.setFrom(color == null ? Colors.WHITE : Colors.create(color));
+    tess.texture = Art.walls;
+    tess.vertexUV(x1, 1.0, z1, u1, v0);
+    tess.vertexUV(x0, 1.0, z0, u0, v0);
+    tess.vertexUV(x0, 0.0, z0, u0, v1);
+    tess.vertexUV(x1, 0.0, z1, u1, v1);
   }
 
   void renderTile(double x, double z, Block block, bool ceil) {
@@ -247,7 +164,7 @@ class Viewport extends Blitter {
       return;
     }
 
-    this.color.setFrom(col == null ? Colors.WHITE : Colors.create(col));
+    tess.color.setFrom(col == null ? Colors.WHITE : Colors.create(col));
 
     double u0 = (tex  % 8) / 8;
     double v0 = (tex ~/ 8) / 8;
@@ -257,58 +174,17 @@ class Viewport extends Blitter {
     double x0 = x, z0 = z, x1 = x + 1.0, z1 = z + 1.0;
     double y = ceil ? 1.0 : 0.0;
 
-    _switchTexture(Art.floors);
-    addVert(x1, y, z0, u1, v0);
-    addVert(x0, y, z0, u0, v0);
-    addVert(x0, y, z1, u0, v1);
-    addVert(x1, y, z1, u1, v1);
+    tess.texture = Art.floors;
+    tess.vertexUV(x1, y, z0, u1, v0);
+    tess.vertexUV(x0, y, z0, u0, v0);
+    tess.vertexUV(x0, y, z1, u0, v1);
+    tess.vertexUV(x1, y, z1, u1, v1);
   }
 
-  void begin() {
-    _rendering = true;
-    _texChanged = true;
-    shader.use();
-    transform.setFrom(projection);
-    transform.multiply(modelView);
-    shader.setUniformMatrix4fv("u_transform", false, transform);
-    shader.setUniform1i("u_texture", 0);
-
-    gl.enableVertexAttribArray(0);
-    gl.enableVertexAttribArray(1);
-    gl.enableVertexAttribArray(2);
-
-    gl.bindBuffer(webgl.ARRAY_BUFFER, vertBuff);
-    gl.bindBuffer(webgl.ELEMENT_ARRAY_BUFFER, indBuff);
-    gl.vertexAttribPointer(0, 3, webgl.FLOAT, false, 36, 0);
-    gl.vertexAttribPointer(1, 2, webgl.FLOAT, false, 36, 12);
-    gl.vertexAttribPointer(2, 4, webgl.FLOAT, false, 36, 20);
-  }
-
-  void end() {
-    flush();
-    gl.bindBuffer(webgl.ELEMENT_ARRAY_BUFFER, null);
-    gl.disableVertexAttribArray(0);
-    gl.disableVertexAttribArray(1);
-    gl.disableVertexAttribArray(2);
-    _rendering = false;
-  }
-
-  void flush() {
-    if (_vOff > 0) {
-      if (_texChanged) {
-        if (_lastTex != null) {
-          _lastTex.bind();
-        }
-        _texChanged = false;
-      }
-      gl.bufferDataTyped(webgl.ARRAY_BUFFER, new Float32List.view(verts.buffer, 0, _vOff), webgl.STREAM_DRAW);
-      gl.drawElements(webgl.TRIANGLES, (_vOff ~/ 9 ~/ 4 * 6), webgl.UNSIGNED_SHORT, 0);
-    }
-    _vOff = 0;
-  }
-
+  /**
+   * Renders and displays the level on screen
+   */
   void renderGame(Game game) {
-
     rot = Math.PI + game.player.rot;
     xCam = game.player.x + 0.5;
     yCam = game.player.z + 0.5;
@@ -324,17 +200,28 @@ class Viewport extends Blitter {
     int xCenter = xCam.floor();
     int zCenter = yCam.floor();
 
-
-    modelView = new Matrix4.identity();
-    modelView.rotateY(rot).translate(-xCam, zCam, -yCam);
+    tess.modelView.setIdentity()..rotateY(rot)..translate(-xCam, zCam, -yCam);
 
     gl.enable(webgl.DEPTH_TEST);
     // gl.disable(webgl.CULL_FACE);
-    gl.bindFramebuffer(webgl.FRAMEBUFFER, fbo);
+    framebuffer.bind(setViewport: true);
     gl.clearColor(0.0, 0.0, 0.0, 0.0);
-    gl.viewport(0, 0, fboTex.width, fboTex.height);
     gl.clear(webgl.COLOR_BUFFER_BIT | webgl.DEPTH_BUFFER_BIT);
-    begin();
+    tess.begin();
+    renderLevel(level, xCenter, zCenter, r);
+    renderSprites(level, xCenter, zCenter, r);
+    tess.end();
+
+    framebuffer.unbind();
+    gl.disable(webgl.DEPTH_TEST);
+    gl.viewport(0, 0, game.canvas.width, game.canvas.height);
+    displayLevel();
+  }
+
+  /**
+   * Renders the geometry of the level itself, including walls and ceiling/floor
+   */
+  void renderLevel(Level level,  int xCenter, int zCenter, int r) {
     for (int zb = zCenter - r; zb <= zCenter + r; zb++) {
       for (int xb = xCenter - r; xb <= xCenter + r; xb++) {
         Block c = level.getBlock(xb, zb);
@@ -355,7 +242,6 @@ class Viewport extends Blitter {
           }
 
         }
-
         if (c.solidRender) {
           if (!e.solidRender) {
             renderWall(xb + 1.0, zb + 1.0, xb + 1.0, zb + 0.0, c.tex, c.col);
@@ -381,7 +267,12 @@ class Viewport extends Blitter {
         renderTile(xb.toDouble(), zb.toDouble(), c, true);
       }
     }
+  }
 
+  /**
+   * Renders all the sprites of the level
+   */
+  void renderSprites(Level level, int xCenter, int zCenter, int r) {
     for (int zb = zCenter - r; zb <= zCenter + r; zb++) {
       for (int xb = xCenter - r; xb <= xCenter + r; xb++) {
         Block c = level.getBlock(xb, zb);
@@ -400,13 +291,13 @@ class Viewport extends Blitter {
         }
       }
     }
-    end();
+  }
 
-
-    gl.bindFramebuffer(webgl.FRAMEBUFFER, null);
-    gl.disable(webgl.DEPTH_TEST);
-    gl.viewport(0, 0, game.canvas.width, game.canvas.height);
-
+  /**
+   * Displays the level framebuffer on screen and draws the 'hurt'
+   * texture if the player is hurt
+   */
+  void displayLevel() {
     batch.begin();
     //Sky
     int xOff = (-(rot + Math.PI) * 512 / (Math.PI * 2)).floor() & 511;
@@ -418,7 +309,7 @@ class Viewport extends Blitter {
     batch.color.setValues(1.0, 1.0, 1.0, 1.0);
     gl.enable(webgl.BLEND);
     gl.blendFunc(webgl.SRC_ALPHA, webgl.ONE_MINUS_SRC_ALPHA);
-    batch.drawTexture(fboTex, 0.0, 0.0, Game.WIDTH + 0.0, Game.VIEWPORT_HEIGHT + 0.0);
+    batch.drawTexture(framebuffer.texture, 0.0, 0.0, Game.WIDTH + 0.0, Game.VIEWPORT_HEIGHT + 0.0);
     gl.disable(webgl.BLEND);
     batch.end();
 
@@ -431,22 +322,8 @@ class Viewport extends Blitter {
       batch.end();
       batch.shader = null;
     }
-
-
-
-
-
-    // renderFloor(level);
   }
 
-}
-
-//I have to do this for all DTMark SpriteBatch shaders so why copy paste
-void setupBatchShader(dtmark.Shader shader) {
-  shader.bindAttribLocation(0, "a_position");
-  shader.bindAttribLocation(1, "a_texCoord");
-  shader.bindAttribLocation(2, "a_color");
-  shader.link();
 }
 
 class Art {
@@ -507,7 +384,9 @@ class Art {
 
   static dtmark.Texture loadTex(String path, webgl.RenderingContext gl, List<Future> waitList,
     {int wrapS: webgl.CLAMP_TO_EDGE, int wrapT: webgl.CLAMP_TO_EDGE}) {
-    var tex = new dtmark.Texture.load(path, gl,wrapS: wrapS, wrapT: wrapT);
+    var tex = new dtmark.Texture.load(path, gl);
+    tex.wrapS = wrapS;
+    tex.wrapT = wrapT;
     waitList.add(tex.onLoad);
     return tex;
   }

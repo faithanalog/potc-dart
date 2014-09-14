@@ -39,7 +39,7 @@ class Sound {
   static Future load() {
     try {
       engine = new dtmark.AudioEngine();
-      engine.volume = 0.5;
+      engine.volume = 0.35;
     } catch (e) {
       altar = bosskill = click1 = click2 = hit = hurt = hurt2 = kill =
         death = splash = key = pickup = roll = shoot = treasure =

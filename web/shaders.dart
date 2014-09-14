@@ -78,7 +78,7 @@ void main() {
   float y = (90.0 - floor(gl_FragCoord.y)) * 14.0;
   float bright = ceil(brightness * 255.0) + mod(x + y, 4.0) * 4.0;
   bright = min(255.0, max(0.0, bright - mod(bright, 16.0)));
-  gl_FragColor = color * v_color * (bright / 255.0);
+  gl_FragColor = vec4(color.xyz * (bright / 255.0), 1.0) * v_color;
 }
 ''';
 
@@ -99,3 +99,9 @@ void main() {
   gl_FragColor = vec4(color.xyz, 1.0) * v_color;
 }
 ''';
+
+const List<dtmark.AttribLocation> potcAttribLocs = const [
+  const dtmark.AttribLocation(0, "a_position"),
+  const dtmark.AttribLocation(1, "a_texCoord"),
+  const dtmark.AttribLocation(2, "a_color")
+];
