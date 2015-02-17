@@ -74,7 +74,7 @@ class Sound {
   }
 
   static Sound loadSound(String path, List<Future> waitList) {
-    var dtSound = new dtmark.Sound.load(path, engine, true);
+    var dtSound = new dtmark.Sound.load(path, engine, "wav");
     waitList.add(dtSound.onLoad);
     return new Sound(dtSound);
   }

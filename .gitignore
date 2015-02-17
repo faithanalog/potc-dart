@@ -13,3 +13,4 @@ build
 preludejava
 out
 pubspec.lock
+.pub
