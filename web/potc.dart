@@ -90,7 +90,7 @@ class Game extends dtmark.BaseGame {
         Item item = player.items[player.selectedSlot];
 
         if (itemUsed) xx = yy = 0;
-        xx += width / 2;
+        xx += width ~/ 2;
         yy += height - PANEL_HEIGHT - 15 * 3;
         if (item != Item.none) {
           blitter.drawBitmapPartScaled(Art.items, 3, xx.toDouble(), yy.toDouble(), 16 * item.icon + 1, 16 + 1 + (itemUsed ? 16 : 0), 15, 15, item.color);
