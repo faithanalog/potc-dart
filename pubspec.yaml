@@ -1,6 +1,6 @@
 name: prelude_of_the_chambered
 dependencies:
-  browser: any
-  vector_math: any
-  dtmark: any
-  image: ">=1.1.22 <2.0.0"
+  browser: "^0.10.0"
+  vector_math: "1.4.3"
+  dtmark: "0.13.4"
+  image: "1.1.22"
